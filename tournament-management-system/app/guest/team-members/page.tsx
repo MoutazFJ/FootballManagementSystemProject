@@ -30,11 +30,13 @@ export default function TeamMembersPage() {
                 <SelectValue placeholder="Select Team" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="alpha">Team Alpha</SelectItem>
-                <SelectItem value="beta">Team Beta</SelectItem>
-                <SelectItem value="gamma">Team Gamma</SelectItem>
-                <SelectItem value="delta">Team Delta</SelectItem>
-                <SelectItem value="epsilon">Team Epsilon</SelectItem>
+                <SelectItem value="CCM">CCM</SelectItem>
+                <SelectItem value="CCP">CCP</SelectItem>
+                <SelectItem value="CPG">CPG</SelectItem>
+                <SelectItem value="KBS">KBS</SelectItem>
+                <SelectItem value="CEP">CEP</SelectItem>
+                <SelectItem value="CDB">CDB</SelectItem>
+                <SelectItem value="CDB">CDB</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -52,8 +54,8 @@ export default function TeamMembersPage() {
               <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="all">All</TabsTrigger>
                 <TabsTrigger value="Manager">Manager</TabsTrigger>
-                <TabsTrigger value="Head Coach">Coach</TabsTrigger>
-                <TabsTrigger value="Captain">Captain</TabsTrigger>
+                <TabsTrigger value="ASST COACH">ASST COACH</TabsTrigger>
+                <TabsTrigger value="COACH">COACH</TabsTrigger>
                 <TabsTrigger value="Player">Players</TabsTrigger>
               </TabsList>
               <TabsContent value={activeTab} className="mt-6">

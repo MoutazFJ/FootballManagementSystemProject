@@ -22,13 +22,15 @@ export default function MatchesPage() {
 
   console.log("Rendering MatchesPage, matches:", matches)
 
-  const filteredMatches = matches.filter(
-    (match) =>
-      match.home.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      match.away.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      match.tournament.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      match.venue.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+  // app/admin/matches/page.tsx
+// Check the filtering logic here
+const filteredMatches = matches.filter(
+  (match) =>
+    match.home.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    match.away.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    match.tournament.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    match.venue.toLowerCase().includes(searchQuery.toLowerCase()),
+)
 
   const handleSendReminder = (matchId: string, homeTeam: string, awayTeam: string) => {
     setSelectedMatch({ id: matchId, home: homeTeam, away: awayTeam })

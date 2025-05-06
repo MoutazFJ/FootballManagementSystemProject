@@ -8,20 +8,24 @@ export async function getTeams() {
     // Direct SQL query to get teams with related data
     const result = await query(`
       SELECT 
-        t.id, 
-        t.name, 
-        tour.name as tournament_name,
-        COUNT(tp.playerid) as player_count
-      FROM 
-        team t
-      LEFT JOIN 
-        tournament_team tt ON t.id = tt.teamid
-      LEFT JOIN 
-        tournament tour ON tt.tournamentid = tour.id
-      LEFT JOIN 
-        team_player tp ON t.id = tp.teamid
-      GROUP BY 
-        t.id, t.name, tour.name
+    t.team_id,
+    t.team_name,
+    tr.tr_id,
+    tr.tr_name AS tournament_name,
+    COUNT(DISTINCT tp.player_id) AS number_of_players
+FROM 
+    TEAM t
+JOIN 
+    TOURNAMENT_TEAM tt ON t.team_id = tt.team_id
+JOIN 
+    TOURNAMENT tr ON tt.tr_id = tr.tr_id
+LEFT JOIN 
+    TEAM_PLAYER tp ON t.team_id = tp.team_id AND tr.tr_id = tp.tr_id
+GROUP BY 
+    t.team_id, t.team_name, tr.tr_id, tr.tr_name
+ORDER BY 
+    t.team_name, tr.tr_name;
+
     `)
 
     // Transform the data to match the frontend format

@@ -28,11 +28,12 @@ export default function RedCardsPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Teams</SelectItem>
-                <SelectItem value="Alpha">Team Alpha</SelectItem>
-                <SelectItem value="Beta">Team Beta</SelectItem>
-                <SelectItem value="Gamma">Team Gamma</SelectItem>
-                <SelectItem value="Delta">Team Delta</SelectItem>
-                <SelectItem value="Epsilon">Team Epsilon</SelectItem>
+                <SelectItem value="KBS">KBS</SelectItem>
+                <SelectItem value="CEP">CEP</SelectItem>
+                <SelectItem value="CPG">CPG</SelectItem>
+                <SelectItem value="CCM">CCM</SelectItem>
+                <SelectItem value="CDB">CDB</SelectItem>
+                <SelectItem value="CGS">CGS</SelectItem>
               </SelectContent>
             </Select>
           </div>

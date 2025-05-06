@@ -13,13 +13,15 @@ export default function MatchResultsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const { selectedTournament, setSelectedTournament } = useAppContext()
 
-  const filteredResults = matchResults.filter(
-    (match) =>
-      (selectedTournament === "all" || match.tournament.includes(selectedTournament)) &&
-      (match.home.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        match.away.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        match.tournament.toLowerCase().includes(searchQuery.toLowerCase())),
-  )
+  // app/guest/match-results/page.tsx
+// Check this section to ensure it correctly filters by tournament name
+const filteredResults = matchResults.filter(
+  (match) =>
+    (selectedTournament === "all" || match.tournament.includes(selectedTournament)) &&
+    (match.home.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      match.away.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      match.tournament.toLowerCase().includes(searchQuery.toLowerCase())),
+)
 
   return (
     <div className="flex flex-col h-full">

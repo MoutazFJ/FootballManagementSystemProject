@@ -54,40 +54,40 @@ export async function getMatchResults() {
   try {
     const result = await query(`
       SELECT 
-        m.matchno, 
-        m.playdate, 
-        m.playstage,
-        m.goalscore,
-        t1.name as team1_name,
-        t2.name as team2_name,
-        v.name as venue_name
-      FROM 
-        match_played m
-      JOIN 
-        team t1 ON m.teamid1 = t1.id
-      JOIN 
-        team t2 ON m.teamid2 = t2.id
-      JOIN 
-        venue v ON m.venueid = v.id
-      WHERE
-        m.results != 'TBD'
-      ORDER BY
-        m.playdate DESC
+    m.match_no, 
+    m.play_date, 
+    m.play_stage,
+    m.results,
+    m.goal_score,
+    t1.team_name AS team1_name,
+    t2.team_name AS team2_name,
+    v.venue_name,
+    t.tr_name AS tournament_name
+    FROM 
+    match_played m
+    JOIN 
+    team t1 ON m.team_id1 = t1.team_id
+    JOIN 
+    team t2 ON m.team_id2 = t2.team_id
+    JOIN 
+    venue v ON m.venue_id = v.venue_id
+    JOIN 
+    tournament t ON m.match_no = t.tr_id
     `)
 
     // Transform the data to match the frontend format
     return result.rows.map((match) => {
       return {
-        id: match.matchno.toString(),
-        date: new Date(match.playdate).toLocaleDateString("en-US", {
+        id: match.match_no.toString(),
+        date: new Date(match.play_date).toLocaleDateString("en-US", {
           year: "numeric",
           month: "long",
           day: "numeric",
         }),
-        tournament: determineTournament(match.playstage),
+        tournament: match.tournament_name, // Use the tournament name from the query instead of determineTournament()
         home: match.team1_name,
         away: match.team2_name,
-        score: match.goalscore,
+        score: match.goal_score,
         venue: match.venue_name,
       }
     })

@@ -190,29 +190,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
           // teamsData,
           // playersData,
           // matchesData,
-          // matchResultsData,
-          // topScorersData,
-          // redCardsData,
-          // teamMembersData,
+           matchResultsData,
+           topScorersData,
+           redCardsData,
+           teamMembersData,
         ] = await Promise.all([
           getTournaments(),
           // getTeams(),
           // getPlayers(),
           // getMatches(),
-          // getMatchResults(),
-          // getTopScorers(),
-          // getRedCards(),
-          // getTeamMembers(),
+           getMatchResults(),
+           getTopScorers(),
+           getRedCards(),
+           getTeamMembers(),
         ])
         console.log("the fetch is", tournamentsData)
         setTournaments(tournamentsData)
         // setTeams(teamsData)
         // setPlayers(playersData)
         // setMatches(matchesData)
-        // setMatchResults(matchResultsData)
-        // setTopScorers(topScorersData)
-        // setRedCards(redCardsData)
-        // setTeamMembers(teamMembersData)
+         setMatchResults(matchResultsData)
+         setTopScorers(topScorersData)
+         setRedCards(redCardsData)
+        /setTeamMembers(teamMembersData)
       } catch (error) {
         console.error("Error fetching data:", error)
         addNotification("Error loading data. Please try again later.")
