@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState,useEffect } from "react"
 import { useAppContext } from "@/contexts/app-context"
 import { Button } from "@/components/ui/button"
 import {
@@ -15,6 +15,14 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+// Add these new imports
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 interface AssignCaptainFormProps {
   teamId: string
@@ -24,14 +32,24 @@ interface AssignCaptainFormProps {
 }
 
 export function AssignCaptainForm({ teamId, teamName, open, onOpenChange }: AssignCaptainFormProps) {
-  const { assignCaptain } = useAppContext()
+  const { assignCaptain , getPlayersByTeamId, currentTeamPlayers } = useAppContext()
   const [captainName, setCaptainName] = useState("")
+  const [selectedPlayerId, setSelectedPlayerId] = useState("")
+
+
+  useEffect(() => {
+    if (open) {
+      getPlayersByTeamId(Number(teamId))
+    }
+  }, [open, teamId, getPlayersByTeamId])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    assignCaptain(teamId, captainName)
-    onOpenChange(false)
-    setCaptainName("")
+    if (selectedPlayerId) {
+      assignCaptain(teamId, selectedPlayerId)
+      onOpenChange(false)
+      setSelectedPlayerId("")
+    }
   }
 
   return (
@@ -40,24 +58,34 @@ export function AssignCaptainForm({ teamId, teamName, open, onOpenChange }: Assi
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>Assign Captain</DialogTitle>
-            <DialogDescription>Assign a captain to {teamName}.</DialogDescription>
+            <DialogDescription>Select a captain for {teamName}.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="captainName" className="text-right">
-                Captain Name
+              <Label htmlFor="captain" className="text-right">
+                Select Player
               </Label>
-              <Input
-                id="captainName"
-                value={captainName}
-                onChange={(e) => setCaptainName(e.target.value)}
-                className="col-span-3"
-                required
-              />
+              <Select
+                value={selectedPlayerId}
+                onValueChange={setSelectedPlayerId}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select a player" />
+                </SelectTrigger>
+                <SelectContent>
+                  {currentTeamPlayers.map((player) => (
+                    <SelectItem key={player.id} value={player.id}>
+                      {player.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>
-            <Button type="submit">Assign Captain</Button>
+            <Button type="submit" disabled={!selectedPlayerId}>
+              Assign Captain
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

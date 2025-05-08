@@ -33,7 +33,7 @@ export function AddTeamForm() {
     addTeam({
       name,
       tournament,
-      captain: "Not Assigned",
+      captain: 0,
       players: Number.parseInt(players),
       status: "Incomplete",
     })

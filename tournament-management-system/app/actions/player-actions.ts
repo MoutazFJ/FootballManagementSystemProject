@@ -70,3 +70,45 @@ export async function rejectPlayer(playerId: string) {
     throw new Error("Failed to reject player")
   }
 }
+
+export async function getPlayersByTeamId(teamId: number) {
+  try {
+    const result = await query(
+      `
+      SELECT 
+        tp.player_id,
+        p.jersey_no,
+        pp.position_desc,
+        per.name AS player_name
+      FROM 
+        team_player tp
+      JOIN 
+        player p ON tp.player_id = p.player_id
+      JOIN 
+        playing_position pp ON p.position_to_play = pp.position_id
+      JOIN 
+        person per ON tp.player_id = per.kfupm_id
+      WHERE 
+        tp.team_id = $1
+      `,
+      [teamId]
+    )
+
+    return result.rows.map((tp, index) => ({
+      id: `p${index + 1}`,
+      name: tp.player_name,
+      team: "", // you can add a JOIN with team if needed
+      tournament: "", // add JOIN with tournament if needed
+      position: tp.position_desc,
+      date: new Date().toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }),
+    }))
+  } catch (error) {
+    console.error("Error fetching players by team ID:", error)
+    throw new Error("Failed to fetch players for the specified team")
+  }
+}
+

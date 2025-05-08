@@ -31,8 +31,8 @@ ORDER BY
     // Transform the data to match the frontend format
     return result.rows.map((team) => {
       return {
-        id: team.id.toString(),
-        name: team.name,
+        id: `${team.team_id}`,
+        name: team.team_name,
         tournament: team.tournament_name || "No Tournament",
         captain: "Not Assigned", // We'll need a separate query to get captains
         players: Number.parseInt(team.player_count) || 0,
@@ -45,47 +45,61 @@ ORDER BY
   }
 }
 
+
 export async function createTeam(data: {
   name: string
   tournament: string
   players: number
 }) {
   try {
-    // Find the tournament by name
-    const tournamentResult = await query(`SELECT id FROM tournament WHERE name = $1`, [data.tournament])
+    // Step 1: Get tr_id from tournament name
+    const tournamentResult = await query(
+      `SELECT tr_id FROM tournament WHERE tr_name = $1`,
+      [data.tournament]
+    )
 
     if (tournamentResult.rows.length === 0) {
       throw new Error(`Tournament "${data.tournament}" not found`)
     }
 
-    const tournamentId = tournamentResult.rows[0].id
+    const tournamentId = tournamentResult.rows[0].tr_id
 
-    // Generate a random ID between 1000 and 9999
-    const id = Math.floor(Math.random() * 9000) + 1000
+    // Step 2: Generate a unique team_id (4-digit)
+    let teamId = Math.floor(Math.random() * 9000) + 1000
+    let check = await query(`SELECT 1 FROM team WHERE team_id = $1`, [teamId])
+    while (check.rows.length > 0) {
+      teamId = Math.floor(Math.random() * 9000) + 1000
+      check = await query(`SELECT 1 FROM team WHERE team_id = $1`, [teamId])
+    }
 
-    // Create the team
-    await query(`INSERT INTO team (id, name) VALUES ($1, $2)`, [id, data.name])
+    // Step 3: Insert into team table
+    await query(
+      `INSERT INTO team (team_id, team_name) VALUES ($1, $2)`,
+      [teamId, data.name]
+    )
 
-    // Create the tournament-team relationship
+    // Step 4: Insert into tournament_team table
     await query(
       `
       INSERT INTO tournament_team (
-        teamid, tournamentid, "group", matchplayed, won, draw, lost, 
-        goalfor, goalagainst, goaldiff, points, groupposition
+        team_id, tr_id, team_group, match_played, won, draw, lost,
+        goal_for, goal_against, goal_diff, points, group_position
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-    `,
-      [id, tournamentId, "A", 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      `,
+      [teamId, tournamentId, "A", 0, 0, 0, 0, 0, 0, 0, 0, 0]
     )
 
     revalidatePath("/admin/teams")
-    return { id, name: data.name }
+    return { id: teamId, name: data.name }
   } catch (error) {
     console.error("Error creating team:", error)
     throw new Error("Failed to create team")
   }
 }
 
-export async function assignCaptain(teamId: number, captainName: string) {
+
+
+export async function assignCaptain(teamId: number, captainName: number) {
   try {
     // In a real application, you would update the captain in the database
     // For now, we'll just revalidate the path

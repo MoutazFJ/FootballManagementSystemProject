@@ -5,6 +5,7 @@ import { getTournaments, createTournament, deleteTournament } from "@/app/action
 import { getTeams, createTeam, assignCaptain as assignTeamCaptain } from "@/app/actions/team-actions"
 import {
   getPlayers,
+  getPlayersByTeamId as getPlayersByTeamIdAction,
   approvePlayer as approvePlayerAction,
   rejectPlayer as rejectPlayerAction,
 } from "@/app/actions/player-actions"
@@ -25,7 +26,7 @@ export type Team = {
   id: string
   name: string
   tournament: string
-  captain: string
+  captain: number
   players: number
   status: "Complete" | "Incomplete"
 }
@@ -130,6 +131,8 @@ type AppContextType = {
   notifications: { id: string; message: string }[]
   addNotification: (message: string) => void
   clearNotifications: () => void
+  getPlayersByTeamId: (teamId: number) => Promise<void>;
+  currentTeamPlayers: Player[];  
 }
 
 // Create context with default values
@@ -161,6 +164,8 @@ const AppContext = createContext<AppContextType>({
   notifications: [],
   addNotification: () => {},
   clearNotifications: () => {},
+  getPlayersByTeamId: () => Promise.resolve(),
+  currentTeamPlayers: [],
 })
 
 // Create provider component
@@ -177,6 +182,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [selectedTournament, setSelectedTournament] = useState<string>("all")
   const [notifications, setNotifications] = useState<{ id: string; message: string }[]>([])
   const [loading, setLoading] = useState<boolean>(true)
+  const [currentTeamPlayers, setCurrentTeamPlayers] = useState<Player[]>([])
 
   // Fetch data on component mount
   useEffect(() => {
@@ -187,7 +193,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         // Fetch all data in parallel
         const [
           tournamentsData,
-          // teamsData,
+          teamsData,
           // playersData,
           // matchesData,
            matchResultsData,
@@ -196,7 +202,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
            teamMembersData,
         ] = await Promise.all([
           getTournaments(),
-          // getTeams(),
+          getTeams(),
           // getPlayers(),
           // getMatches(),
            getMatchResults(),
@@ -206,13 +212,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ])
         console.log("the fetch is", tournamentsData)
         setTournaments(tournamentsData)
-        // setTeams(teamsData)
+        setTeams(teamsData)
         // setPlayers(playersData)
         // setMatches(matchesData)
          setMatchResults(matchResultsData)
          setTopScorers(topScorersData)
          setRedCards(redCardsData)
-        /setTeamMembers(teamMembersData)
+        setTeamMembers(teamMembersData)
       } catch (error) {
         console.error("Error fetching data:", error)
         addNotification("Error loading data. Please try again later.")
@@ -291,21 +297,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const getPlayersByTeamId = async (teamId: number) => {
+    try {
+
+      const playersData = await getPlayersByTeamIdAction(teamId)
+      setCurrentTeamPlayers(playersData)
+      
+
+     
+    } catch (error) {
+      console.error("Error approving player:", error)
+      addNotification("Failed to approve player. Please try again.")
+    }
+  }
+
   const updateTeam = (team: Team) => {
     // For now, just update the local state
     setTeams(teams.map((t) => (t.id === team.id ? team : t)))
     addNotification(`Team "${team.name}" has been updated`)
   }
 
-  const assignCaptain = async (teamId: string, captainName: string) => {
+  const assignCaptain = async (teamId: string, captainId: number) => {
     try {
-      await assignTeamCaptain(Number.parseInt(teamId), captainName)
+      await assignTeamCaptain(Number.parseInt(teamId), captainId)
 
       // Update local state
       setTeams(
         teams.map((team) => {
           if (team.id === teamId) {
-            return { ...team, captain: captainName, status: "Complete" as const }
+            return { ...team, captain: captainId, status: "Complete" as const }
           }
           return team
         }),
@@ -313,7 +333,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       const team = teams.find((t) => t.id === teamId)
       if (team) {
-        addNotification(`${captainName} has been assigned as captain of ${team.name}`)
+        addNotification(`${captainId} has been assigned as captain of ${team.name}`)
       }
     } catch (error) {
       console.error("Error assigning captain:", error)
@@ -431,6 +451,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     notifications,
     addNotification,
     clearNotifications,
+    getPlayersByTeamId,
+    currentTeamPlayers,
   }
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>

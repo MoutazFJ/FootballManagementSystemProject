@@ -19,6 +19,7 @@ export default function TeamsPage() {
   const [assignCaptainDialogOpen, setAssignCaptainDialogOpen] = useState(false)
   const [selectedTeam, setSelectedTeam] = useState<{ id: string; name: string } | null>(null)
 
+  console.log("Teams:", teams)
   const filteredTeams = teams.filter(
     (team) =>
       team.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -58,18 +59,16 @@ export default function TeamsPage() {
                   <TableHead>Team Name</TableHead>
                   <TableHead>Tournament</TableHead>
                   <TableHead>Captain</TableHead>
-                  <TableHead>Players</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredTeams.map((team) => (
-                  <TableRow key={team.id}>
+                {filteredTeams.map((team,index) => (
+                  <TableRow key={index}>
                     <TableCell className="font-medium">{team.name}</TableCell>
                     <TableCell>{team.tournament}</TableCell>
                     <TableCell>{team.captain}</TableCell>
-                    <TableCell>{team.players}</TableCell>
                     <TableCell>
                       <span
                         className={`px-2 py-1 rounded-full text-xs ${
@@ -81,19 +80,7 @@ export default function TeamsPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          title="Edit Team"
-                          onClick={() => {
-                            toast({
-                              title: "Edit Team",
-                              description: "Team edit functionality would open here.",
-                            })
-                          }}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
+                        
                         <Button
                           variant="ghost"
                           size="icon"
@@ -102,19 +89,7 @@ export default function TeamsPage() {
                         >
                           <UserPlus className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          title="Manage Players"
-                          onClick={() => {
-                            toast({
-                              title: "Manage Players",
-                              description: "Player management functionality would open here.",
-                            })
-                          }}
-                        >
-                          <Users className="h-4 w-4" />
-                        </Button>
+                       
                       </div>
                     </TableCell>
                   </TableRow>
