@@ -42,6 +42,7 @@ export async function getTournaments() {
 }
 
 export async function createTournament(data: {
+  id?: number;
   name: string
   startDate: string
   endDate: string
@@ -49,41 +50,40 @@ export async function createTournament(data: {
 }) {
   try {
     // Generate a random ID between 10 and 999
-    const id = Math.floor(Math.random() * 990) + 10
-
+    const tr_id = data.id || Math.floor(Math.random() * 990) + 10;
     // Insert the tournament using SQL
     await query(
-      `INSERT INTO tournament (id, name, startdate, enddate) 
+      `INSERT INTO tournament (tr_id, tr_name, start_date, end_date) 
        VALUES ($1, $2, $3, $4)`,
-      [id, data.name, new Date(data.startDate), new Date(data.endDate)],
-    )
+      [tr_id, data.name, new Date(data.startDate), new Date(data.endDate)]
+    );
 
-    revalidatePath("/admin/tournaments")
-    return { id, ...data }
+    revalidatePath("/admin/tournaments");
+    return { id: tr_id.toString(), ...data };
   } catch (error) {
     console.error("Error creating tournament:", error)
     throw new Error("Failed to create tournament")
   }
 }
 
-export async function deleteTournament(id: number) {
+export async function deleteTournament(tournamentId: string | number) {
   try {
-    // Delete related records first
-    await query(`DELETE FROM tournament_team WHERE tournamentid = $1`, [id])
-    await query(`DELETE FROM team_player WHERE tournamentid = $1`, [id])
-    await query(`DELETE FROM team_support WHERE tournamentid = $1`, [id])
+    const tr_id = typeof tournamentId === 'string' ? parseInt(tournamentId, 10) : tournamentId;
+    
+    
+    await query(`DELETE FROM tournament_team WHERE tr_id = $1`, [tr_id]);
+    
+    await query('DELETE FROM team_player WHERE tr_id = $1', [tr_id]);
+    
+    
+    await query('DELETE FROM tournament WHERE tr_id = $1', [tr_id]);
 
-    // Then delete the tournament
-    await query(`DELETE FROM tournament WHERE id = $1`, [id])
-
-    revalidatePath("/admin/tournaments")
-    return { success: true }
+    revalidatePath("/admin/tournaments");
+    return { success: true };
   } catch (error) {
-    console.error("Error deleting tournament:", error)
-    throw new Error("Failed to delete tournament")
-  }
-}
-
+    console.error("Error deleting tournament:", error);
+    throw new Error("Failed to delete tournament");
+  }}
 // Helper function to determine tournament status based on dates
 function determineStatus(startDate: Date, endDate: Date): "Active" | "Planning" | "Completed" {
   const now = new Date()
