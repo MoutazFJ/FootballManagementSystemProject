@@ -9,11 +9,6 @@ export default function Home() {
       <header className="bg-slate-800 text-white py-4">
         <div className="container mx-auto px-4 flex justify-between items-center">
           <h1 className="text-xl font-bold">Tournament Management System</h1>
-          <Link href="/login">
-            <Button variant="outline" className="text-white border-white hover:bg-slate-700">
-              Login
-            </Button>
-          </Link>
         </div>
       </header>
 
