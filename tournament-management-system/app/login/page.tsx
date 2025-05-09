@@ -40,15 +40,27 @@ export default function LoginPage() {
       return
     }
 
-    toast({
-      title: "Login Successful",
-      description: `Welcome, ${username}! You are logged in as ${role}.`,
-    })
-
-    if (role === "admin") {
+    // Check if credentials are valid for admin
+    if (username === "admin" && password === "admin") {
+      toast({
+        title: "Login Successful",
+        description: `Welcome, ${username}! You are logged in as admin.`,
+      })
       router.push("/admin/dashboard")
-    } else {
+    } else if (username === "guest" && password === "guest"){
+      toast({
+        title: "Login Successful",
+        description: `Welcome, ${username}! You are logged in as guest.`,
+      })
       router.push("/guest/dashboard")
+
+    }else {
+      // Display invalid credentials message for any other combination
+      toast({
+        title: "Error",
+        description: "Invalid credentials. Please try again.",
+        variant: "destructive",
+      })
     }
   }
 
