@@ -40,11 +40,11 @@ export function Sidebar({ isAdmin = false }: SidebarProps) {
       href: "/admin/players",
       icon: <User className="mr-2 h-4 w-4" />,
     },
-    {
-      name: "Matches",
-      href: "/admin/matches",
-      icon: <Calendar className="mr-2 h-4 w-4" />,
-    },
+    // {
+    //   name: "Matches",
+    //   href: "/admin/matches",
+    //   icon: <Calendar className="mr-2 h-4 w-4" />,
+    // },
     {
       name: "Database Status",
       href: "/admin/database-status",

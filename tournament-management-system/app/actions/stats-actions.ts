@@ -160,24 +160,24 @@ export async function getTeamMembers(teamId = null) {
 // Helper functions
 function determineTournament(matchCount: number): string {
   if (matchCount > 5) {
-    return "Summer Championship"
+    return "Faculty Tournament"
   } else if (matchCount > 3) {
-    return "Regional Tournament"
+    return "Staff Tournament"
   } else {
-    return "Spring League"
+    return "Annual Tournament"
   }
 }
 
-function determineRedCardReason(bookingTime: number): string {
-  const reasons = [
-    "Serious foul play",
-    "Violent conduct",
-    "Denying goal opportunity",
-    "Second yellow card",
-    "Offensive language",
-  ]
+// function determineRedCardReason(bookingTime: number): string {
+//   const reasons = [
+//     "Serious foul play",
+//     "Violent conduct",
+//     "Denying goal opportunity",
+//     "Second yellow card",
+//     "Offensive language",
+//   ]
 
-  // Use booking time to deterministically select a reason
-  const index = bookingTime % reasons.length
-  return reasons[index]
-}
+//   // Use booking time to deterministically select a reason
+//   const index = bookingTime % reasons.length
+//   return reasons[index]
+// }

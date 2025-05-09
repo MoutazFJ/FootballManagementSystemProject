@@ -1,14 +1,14 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
-import { getTournaments, createTournament, deleteTournament } from "@/app/actions/tournament-actions"
-import { getTeams, createTeam, assignCaptain as assignTeamCaptain } from "@/app/actions/team-actions"
 import {
-  getPlayers,
-  getPlayersByTeamId as getPlayersByTeamIdAction,
-  approvePlayer as approvePlayerAction,
-  rejectPlayer as rejectPlayerAction,
-} from "@/app/actions/player-actions"
+  getTournaments,
+  createTournament,
+  deleteTournament,
+  updateTournamentDates as updateTournamentDatesAction,
+} from "@/app/actions/tournament-actions"
+import { getTeams, createTeam, assignCaptain as assignTeamCaptain } from "@/app/actions/team-actions"
+import { approvePlayer as approvePlayerAction, rejectPlayer as rejectPlayerAction } from "@/app/actions/player-actions"
 import { getMatches, getMatchResults, createMatch } from "@/app/actions/match-actions"
 import { getTopScorers, getRedCards, getTeamMembers } from "@/app/actions/stats-actions"
 
@@ -26,7 +26,7 @@ export type Team = {
   id: string
   name: string
   tournament: string
-  captain: number
+  captain: string
   players: number
   status: "Complete" | "Incomplete"
 }
@@ -131,8 +131,7 @@ type AppContextType = {
   notifications: { id: string; message: string }[]
   addNotification: (message: string) => void
   clearNotifications: () => void
-  getPlayersByTeamId: (teamId: number) => Promise<void>;
-  currentTeamPlayers: Player[];  
+  updateTournamentDates: (tournamentId: string, startDate: string, endDate: string) => Promise<void>
 }
 
 // Create context with default values
@@ -164,8 +163,7 @@ const AppContext = createContext<AppContextType>({
   notifications: [],
   addNotification: () => {},
   clearNotifications: () => {},
-  getPlayersByTeamId: () => Promise.resolve(),
-  currentTeamPlayers: [],
+  updateTournamentDates: async () => {},
 })
 
 // Create provider component
@@ -182,7 +180,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [selectedTournament, setSelectedTournament] = useState<string>("all")
   const [notifications, setNotifications] = useState<{ id: string; message: string }[]>([])
   const [loading, setLoading] = useState<boolean>(true)
-  const [currentTeamPlayers, setCurrentTeamPlayers] = useState<Player[]>([])
 
   // Fetch data on component mount
   useEffect(() => {
@@ -193,31 +190,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
         // Fetch all data in parallel
         const [
           tournamentsData,
-          teamsData,
+          // teamsData,
           // playersData,
           // matchesData,
-           matchResultsData,
-           topScorersData,
-           redCardsData,
-           teamMembersData,
+          matchResultsData,
+          topScorersData,
+          redCardsData,
+          teamMembersData,
         ] = await Promise.all([
           getTournaments(),
-          getTeams(),
+          // getTeams(),
           // getPlayers(),
           // getMatches(),
-           getMatchResults(),
-           getTopScorers(),
-           getRedCards(),
-           getTeamMembers(),
+          getMatchResults(),
+          getTopScorers(),
+          getRedCards(),
+          getTeamMembers(),
         ])
         console.log("the fetch is", tournamentsData)
         setTournaments(tournamentsData)
-        setTeams(teamsData)
+        // setTeams(teamsData)
         // setPlayers(playersData)
         // setMatches(matchesData)
-         setMatchResults(matchResultsData)
-         setTopScorers(topScorersData)
-         setRedCards(redCardsData)
+        setMatchResults(matchResultsData)
+        setTopScorers(topScorersData)
+        setRedCards(redCardsData)
         setTeamMembers(teamMembersData)
       } catch (error) {
         console.error("Error fetching data:", error)
@@ -276,6 +273,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  // Add this function after deleteTournamentHandler
+  const updateTournamentDates = async (tournamentId: string, startDate: string, endDate: string) => {
+    try {
+      // Call the server action
+      await updateTournamentDatesAction({
+        tournamentId,
+        startDate,
+        endDate,
+      })
+
+      // Refresh tournaments to get updated data
+      const updatedTournaments = await getTournaments()
+      setTournaments(updatedTournaments)
+
+      // Add notification
+      const tournament = tournaments.find((t) => t.id === tournamentId)
+      if (tournament) {
+        addNotification(`Tournament "${tournament.name}" dates have been updated`)
+      }
+    } catch (error) {
+      console.error("Error updating tournament dates:", error)
+      addNotification("Failed to update tournament dates. Please try again.")
+    }
+  }
+
   // Team functions
   const addTeam = async (team: Omit<Team, "id">) => {
     console.log("Adding team:", team)
@@ -297,35 +319,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const getPlayersByTeamId = async (teamId: number) => {
-    try {
-
-      const playersData = await getPlayersByTeamIdAction(teamId)
-      setCurrentTeamPlayers(playersData)
-      
-
-     
-    } catch (error) {
-      console.error("Error approving player:", error)
-      addNotification("Failed to approve player. Please try again.")
-    }
-  }
-
   const updateTeam = (team: Team) => {
     // For now, just update the local state
     setTeams(teams.map((t) => (t.id === team.id ? team : t)))
     addNotification(`Team "${team.name}" has been updated`)
   }
 
-  const assignCaptain = async (teamId: string, captainId: number) => {
+  const assignCaptain = async (teamId: string, captainName: string) => {
     try {
-      await assignTeamCaptain(Number.parseInt(teamId), captainId)
+      await assignTeamCaptain(Number.parseInt(teamId), captainName)
 
       // Update local state
       setTeams(
         teams.map((team) => {
           if (team.id === teamId) {
-            return { ...team, captain: captainId, status: "Complete" as const }
+            return { ...team, captain: captainName, status: "Complete" as const }
           }
           return team
         }),
@@ -333,7 +341,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       const team = teams.find((t) => t.id === teamId)
       if (team) {
-        addNotification(`${captainId} has been assigned as captain of ${team.name}`)
+        addNotification(`${captainName} has been assigned as captain of ${team.name}`)
       }
     } catch (error) {
       console.error("Error assigning captain:", error)
@@ -436,6 +444,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     addTournament,
     updateTournament,
     deleteTournament: deleteTournamentHandler,
+    updateTournamentDates, // Add this line
     addTeam,
     updateTeam,
     assignCaptain,
@@ -451,8 +460,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     notifications,
     addNotification,
     clearNotifications,
-    getPlayersByTeamId,
-    currentTeamPlayers,
   }
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>

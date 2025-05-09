@@ -56,7 +56,7 @@ export default function AdminDashboard() {
     <div className="flex flex-col h-full">
       <DashboardHeader title="Admin Dashboard" userRole="admin" />
       <main className="flex-1 p-4 md:p-6 space-y-6">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Tournaments</CardTitle>
@@ -77,7 +77,7 @@ export default function AdminDashboard() {
               <p className="text-xs text-muted-foreground">Across all tournaments</p>
             </CardContent>
           </Card>
-          <Card>
+          {/* <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Upcoming Matches</CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -88,8 +88,8 @@ export default function AdminDashboard() {
                 {upcomingMatches > 0 ? "Next match coming soon" : "No upcoming matches"}
               </p>
             </CardContent>
-          </Card>
-          <Card>
+          </Card> */}
+          {/* <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Player Approvals</CardTitle>
               <Shield className="h-4 w-4 text-muted-foreground" />
@@ -98,7 +98,7 @@ export default function AdminDashboard() {
               <div className="text-2xl font-bold">{pendingApprovals}</div>
               <p className="text-xs text-muted-foreground">Pending approvals</p>
             </CardContent>
-          </Card>
+          </Card> */}
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">

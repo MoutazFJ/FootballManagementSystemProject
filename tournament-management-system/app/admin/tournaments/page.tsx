@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { useState } from "react"
 import { useAppContext } from "@/contexts/app-context"
 import { DashboardHeader } from "@/components/layout/dashboard-header"
@@ -19,13 +21,26 @@ import {
 } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
 import { LoadingSpinner } from "@/components/loading-spinner"
+import { Label } from "@/components/ui/label"
 
 export default function TournamentsPage() {
-  const { tournaments, deleteTournament, loading } = useAppContext()
+  const { tournaments, deleteTournament, updateTournamentDates, loading } = useAppContext()
   const { toast } = useToast()
   const [searchQuery, setSearchQuery] = useState("")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [tournamentToDelete, setTournamentToDelete] = useState<string | null>(null)
+
+  // Add state for edit dialog
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [tournamentToEdit, setTournamentToEdit] = useState<{
+    id: string
+    name: string
+    startDate: string
+    endDate: string
+  } | null>(null)
+  const [startDate, setStartDate] = useState("")
+  const [endDate, setEndDate] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const filteredTournaments = tournaments.filter((tournament) =>
     tournament.name.toLowerCase().includes(searchQuery.toLowerCase()),
@@ -44,6 +59,64 @@ export default function TournamentsPage() {
         title: "Tournament Deleted",
         description: "The tournament has been successfully deleted.",
       })
+    }
+  }
+
+  // Add handler for edit button click
+  const handleEditClick = (tournament: {
+    id: string
+    name: string
+    startDate: string
+    endDate: string
+  }) => {
+    setTournamentToEdit(tournament)
+
+    // Format dates for input fields (assuming dates are in format "Month Day, Year")
+    const formatDateForInput = (dateString: string) => {
+      try {
+        const date = new Date(dateString)
+        return date.toISOString().split("T")[0] // Format as YYYY-MM-DD
+      } catch (e) {
+        return ""
+      }
+    }
+
+    setStartDate(formatDateForInput(tournament.startDate))
+    setEndDate(formatDateForInput(tournament.endDate))
+    setEditDialogOpen(true)
+  }
+
+  // Handle form submission
+  const handleUpdateDates = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!tournamentToEdit || !startDate || !endDate) {
+      toast({
+        title: "Error",
+        description: "Both start and end dates are required.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      setIsSubmitting(true)
+      await updateTournamentDates(tournamentToEdit.id, startDate, endDate)
+
+      toast({
+        title: "Success",
+        description: `Dates for ${tournamentToEdit.name} have been updated.`,
+      })
+
+      setEditDialogOpen(false)
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update tournament dates.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -78,8 +151,6 @@ export default function TournamentsPage() {
                     <TableHead>Tournament Name</TableHead>
                     <TableHead>Start Date</TableHead>
                     <TableHead>End Date</TableHead>
-                    <TableHead>Teams</TableHead>
-                    <TableHead>Status</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -89,31 +160,19 @@ export default function TournamentsPage() {
                       <TableCell className="font-medium">{tournament.name}</TableCell>
                       <TableCell>{tournament.startDate}</TableCell>
                       <TableCell>{tournament.endDate}</TableCell>
-                      <TableCell>{tournament.teams}</TableCell>
-                      <TableCell>
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs ${
-                            tournament.status === "Active"
-                              ? "bg-green-100 text-green-800"
-                              : tournament.status === "Completed"
-                                ? "bg-blue-100 text-blue-800"
-                                : "bg-yellow-100 text-yellow-800"
-                          }`}
-                        >
-                          {tournament.status}
-                        </span>
-                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => {
-                              toast({
-                                title: "Edit Tournament",
-                                description: "Tournament edit functionality would open here.",
+                            onClick={() =>
+                              handleEditClick({
+                                id: tournament.id,
+                                name: tournament.name,
+                                startDate: tournament.startDate,
+                                endDate: tournament.endDate,
                               })
-                            }}
+                            }
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -126,7 +185,7 @@ export default function TournamentsPage() {
                   ))}
                   {filteredTournaments.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-4">
+                      <TableCell colSpan={4} className="text-center py-4">
                         No tournaments found. Try a different search or add a new tournament.
                       </TableCell>
                     </TableRow>
@@ -138,6 +197,7 @@ export default function TournamentsPage() {
         </Card>
       </main>
 
+      {/* Delete confirmation dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -154,6 +214,54 @@ export default function TournamentsPage() {
               Delete
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit tournament dates dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <form onSubmit={handleUpdateDates}>
+            <DialogHeader>
+              <DialogTitle>Edit Tournament Dates</DialogTitle>
+              <DialogDescription>Update the start and end dates for {tournamentToEdit?.name}.</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="startDate" className="text-right">
+                  Start Date
+                </Label>
+                <Input
+                  id="startDate"
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="col-span-3"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="endDate" className="text-right">
+                  End Date
+                </Label>
+                <Input
+                  id="endDate"
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="col-span-3"
+                  required
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Updating..." : "Update Dates"}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
