@@ -110,3 +110,38 @@ export async function assignCaptain(teamId: number, captainName: number) {
     throw new Error("Failed to assign captain")
   }
 }
+
+export async function getAllPersons() {
+  try {
+    const result = await query(`
+      SELECT p.*, 
+             CASE 
+                 WHEN pl.player_id IS NOT NULL THEN 'Player'
+                 WHEN ts.support_type = 'HC' THEN 'Head Coach'
+                 WHEN ts.support_type = 'AC' THEN 'Assistant Coach'
+                 WHEN ts.support_type = 'MG' THEN 'Manager'
+                 ELSE 'Other Support Staff'
+             END AS role,
+             COALESCE(t.team_name, ts_team.team_name) AS team_name
+      FROM person p
+      LEFT JOIN player pl ON p.kfupm_id = pl.player_id
+      LEFT JOIN team_support ts ON p.kfupm_id = ts.support_id
+      LEFT JOIN team_player tp ON pl.player_id = tp.player_id
+      LEFT JOIN team t ON tp.team_id = t.team_id
+      LEFT JOIN team ts_team ON ts.team_id = ts_team.team_id
+    `)
+
+    return result.rows.map((person) => {
+      return {
+        id: person.kfupm_id,
+        name: person.name,
+        email: person.email,
+        role: person.role,
+        team: person.team_name || "No Team"
+      }
+    })
+  } catch (error) {
+    console.error("Error fetching people:", error)
+    throw new Error("Failed to fetch people")
+  }
+}

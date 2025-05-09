@@ -7,46 +7,43 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { CheckCircle, XCircle } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { Mail } from "lucide-react"
 
 export default function PlayersPage() {
-  const { players, approvePlayer, rejectPlayer } = useAppContext()
-  const { toast } = useToast()
+  const { persons } = useAppContext()
   const [searchQuery, setSearchQuery] = useState("")
 
-  const filteredPlayers = players.filter(
-    (player) =>
-      player.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      player.team.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      player.tournament.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
-
-  const handleApprovePlayer = (playerId: string, playerName: string) => {
-    approvePlayer(playerId)
-    toast({
-      title: "Player Approved",
-      description: `${playerName} has been approved successfully.`,
-    })
+  const getKfupmEmail = (kfupmId: string) => {
+    return `s${kfupmId}@kfupm.edu.sa`
   }
 
-  const handleRejectPlayer = (playerId: string, playerName: string) => {
-    rejectPlayer(playerId)
-    toast({
-      title: "Player Rejected",
-      description: `${playerName} has been rejected.`,
-      variant: "destructive",
-    })
+  const filteredPeople = persons.filter((person) => {
+    const searchLower = searchQuery.toLowerCase()
+    const email = getKfupmEmail(person.id)
+    
+    return (
+      person.name?.toLowerCase().includes(searchLower) ||
+      person.team?.toLowerCase().includes(searchLower) ||
+      person.role?.toLowerCase().includes(searchLower) ||
+      email.toLowerCase().includes(searchLower)
+    )
+  })
+
+  const getMailtoLink = (person: { id: string; name: string }) => {
+    const email = getKfupmEmail(person.id)
+    const subject = encodeURIComponent("Tournament Management System Notification")
+    const body = encodeURIComponent(`Dear ${person.name},\n\nThis is a notification from the Tournament Management System. You have a match tommorrow.\n\nBest regards,\nTournament Management Team`)
+    return `mailto:${email}?subject=${subject}&body=${body}`
   }
 
   return (
     <div className="flex flex-col h-full">
-      <DashboardHeader title="Player Approvals" userRole="admin" />
+      <DashboardHeader title="Player Emails" userRole="admin" />
       <main className="flex-1 p-4 md:p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Input
-              placeholder="Search players..."
+              placeholder="Search people..."
               className="w-[250px]"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -56,55 +53,64 @@ export default function PlayersPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Pending Player Approvals</CardTitle>
-            <CardDescription>Review and approve player registrations for teams.</CardDescription>
+            <CardTitle>Team Members</CardTitle>
+            <CardDescription>Send emails to players, coaches, and staff members.</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Player Name</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Role</TableHead>
                   <TableHead>Team</TableHead>
-                  <TableHead>Tournament</TableHead>
-                  <TableHead>Position</TableHead>
-                  <TableHead>Registration Date</TableHead>
+                  <TableHead>KFUPM Email</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredPlayers.map((player) => (
-                  <TableRow key={player.id}>
-                    <TableCell className="font-medium">{player.name}</TableCell>
-                    <TableCell>{player.team}</TableCell>
-                    <TableCell>{player.tournament}</TableCell>
-                    <TableCell>{player.position}</TableCell>
-                    <TableCell>{player.date}</TableCell>
+                {filteredPeople.map((person,index) => (
+                  <TableRow key={index}>
+                    <TableCell className="font-medium">{person.name}</TableCell>
+                    <TableCell>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs ${
+                          person.role === "Player"
+                            ? "bg-blue-100 text-blue-800"
+                            : person.role === "Head Coach"
+                            ? "bg-purple-100 text-purple-800"
+                            : person.role === "Assistant Coach"
+                            ? "bg-indigo-100 text-indigo-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {person.role}
+                      </span>
+                    </TableCell>
+                    <TableCell>{person.team}</TableCell>
+                    <TableCell>{getKfupmEmail(person.id)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="text-green-600"
-                          onClick={() => handleApprovePlayer(player.id, player.name)}
+                          className="text-blue-600 hover:text-blue-800"
+                          asChild
                         >
-                          <CheckCircle className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-red-600"
-                          onClick={() => handleRejectPlayer(player.id, player.name)}
-                        >
-                          <XCircle className="h-4 w-4" />
+                          <a
+                            href={getMailtoLink(person)}
+                            title={`Send email to ${person.name}`}
+                          >
+                            <Mail className="h-4 w-4" />
+                          </a>
                         </Button>
                       </div>
                     </TableCell>
                   </TableRow>
                 ))}
-                {filteredPlayers.length === 0 && (
+                {filteredPeople.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-4">
-                      No pending player approvals found.
+                    <TableCell colSpan={5} className="text-center py-4">
+                      No people found. Try a different search.
                     </TableCell>
                   </TableRow>
                 )}

@@ -11,6 +11,7 @@ import { getTeams, createTeam, assignCaptain as assignTeamCaptain } from "@/app/
 import { approvePlayer as approvePlayerAction, rejectPlayer as rejectPlayerAction } from "@/app/actions/player-actions"
 import { getMatches, getMatchResults, createMatch } from "@/app/actions/match-actions"
 import { getTopScorers, getRedCards, getTeamMembers } from "@/app/actions/stats-actions"
+import { getAllPersons  } from "@/app/actions/team-actions"
 
 // Define types for our data
 export type Tournament = {
@@ -92,6 +93,14 @@ export type TeamMember = {
   joined: string
 }
 
+export type Person = {
+  id: string
+  name: string
+  email: string
+  role: string
+  team: string
+}
+
 // Initial data (will be replaced with data from the server)
 const initialTournaments: Tournament[] = []
 const initialTeams: Team[] = []
@@ -101,12 +110,15 @@ const initialMatchResults: MatchResult[] = []
 const initialTopScorers: TopScorer[] = []
 const initialRedCards: RedCard[] = []
 const initialTeamMembers: TeamMember[] = []
+const initialPersons: Person[] = []
+
 
 // Create context type
 type AppContextType = {
   tournaments: Tournament[]
   teams: Team[]
   players: Player[]
+  persons: Person[]
   matches: Match[]
   matchResults: MatchResult[]
   topScorers: TopScorer[]
@@ -139,6 +151,7 @@ const AppContext = createContext<AppContextType>({
   tournaments: [],
   teams: [],
   players: [],
+  persons: [],
   matches: [],
   matchResults: [],
   topScorers: [],
@@ -171,6 +184,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [tournaments, setTournaments] = useState<Tournament[]>(initialTournaments)
   const [teams, setTeams] = useState<Team[]>(initialTeams)
   const [players, setPlayers] = useState<Player[]>(initialPlayers)
+  const [persons, setPersons] = useState<Person[]>(initialPersons)
   const [matches, setMatches] = useState<Match[]>(initialMatches)
   const [matchResults, setMatchResults] = useState<MatchResult[]>(initialMatchResults)
   const [topScorers, setTopScorers] = useState<TopScorer[]>(initialTopScorers)
@@ -192,6 +206,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           tournamentsData,
           teamsData,
           // playersData,
+          personsData,
           // matchesData,
           matchResultsData,
           topScorersData,
@@ -201,6 +216,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           getTournaments(),
           getTeams(),
           // getPlayers(),
+          getAllPersons(),
           // getMatches(),
           getMatchResults(),
           getTopScorers(),
@@ -211,6 +227,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setTournaments(tournamentsData)
         setTeams(teamsData)
         // setPlayers(playersData)
+        setPersons(personsData)
         // setMatches(matchesData)
         setMatchResults(matchResultsData)
         setTopScorers(topScorersData)
@@ -435,6 +452,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     tournaments,
     teams,
     players,
+    persons,
     matches,
     matchResults,
     topScorers,
