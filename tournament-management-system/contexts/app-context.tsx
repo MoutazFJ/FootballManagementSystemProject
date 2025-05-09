@@ -190,7 +190,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         // Fetch all data in parallel
         const [
           tournamentsData,
-          // teamsData,
+          teamsData,
           // playersData,
           // matchesData,
           matchResultsData,
@@ -199,7 +199,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           teamMembersData,
         ] = await Promise.all([
           getTournaments(),
-          // getTeams(),
+          getTeams(),
           // getPlayers(),
           // getMatches(),
           getMatchResults(),
@@ -209,7 +209,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ])
         console.log("the fetch is", tournamentsData)
         setTournaments(tournamentsData)
-        // setTeams(teamsData)
+        setTeams(teamsData)
         // setPlayers(playersData)
         // setMatches(matchesData)
         setMatchResults(matchResultsData)
